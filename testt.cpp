@@ -12,6 +12,14 @@ struct Object {
 	string swivelAngle;
 };
 
+struct SpecialObject {
+	string id;
+	string gotoMap;
+	string positionMap;
+	string positionObj;
+	string distance;
+};
+
 template<class T>
 struct List {
 	T *data;
@@ -20,7 +28,7 @@ struct List {
 
 struct Map {
 	string id;
-	List<Object> *obj;
+	List<Object> *listObj;
 	Map *next;
 };
 
@@ -52,6 +60,19 @@ T *getList(List<T> *list, int index) {
 	return l->data;
 }
 
+void printListObject(List<Object> *list) {
+	List<Object> *l = list->next;
+	while (l != NULL) {
+		cout << "\t" << l->data->id << endl;
+		cout << "\t" << l->data->name << endl;
+		cout << "\t" << l->data->directory << endl;
+		cout << "\t" << l->data->position << endl;
+		cout << "\t" << l->data->scale << endl;
+		cout << "\t" << l->data->swivelAngle << endl;
+		l = l->next;
+	}
+}
+
 void putMap(Map *map, string id, List<Object> *obj) {
 	Map *i = map;
 	while (i->next != NULL && i->next->id != id) {
@@ -63,34 +84,40 @@ void putMap(Map *map, string id, List<Object> *obj) {
 	}
 
 	i->next->id = id;
-	i->next->obj = obj;
+	i->next->listObj = obj;
 }
 
-List<Object> *getMap(Map *map, string id) {
-	Map *m = map;
-	while (m->id != id) {
-		m = m->next;
+Map *getMap(List<Map> *map, string id) {
+	List<Map> *lm = map;
+	while (lm->data->id != id) {
+		lm = lm->next;
 	}
 
-	return m->obj;
+	return lm->data;
+}
+
+void printMap(Map *map) {
+	Map *m = map->next;
+	while (m != NULL) {
+		cout << m->id << endl;
+		printListObject(m->listObj);
+		m = m->next;
+	}
 }
 
 List<Map> *MAP = new List<Map>;
+	Map *map = new Map;
 
 void readData(char *mapFile) {
-	string str;
 	string id;
 	List<Object> *lObj = new List<Object>;
+
 	ifstream ifs(mapFile);
+	string str;
+
 	while (ifs >> str) {
 		if (str.find("MAP") == 0) {
-			if (lObj->next != NULL) {
-//				addMap()
-			}
-			Map *map = new Map;
 			id = str.substr(3);
-			putMap(map, id, NULL);
-			addList(MAP, map);
 		}
 
 		if (str.find("OBJ") == 0) {
@@ -103,15 +130,33 @@ void readData(char *mapFile) {
 			ifs >> obj->swivelAngle;
 
 			addList(lObj, obj);
-			delete(obj);
 		}
+
+//		if (str.find("GOTO") == 0) {
+//			SpecialObject *obj = new SpecialObject;
+//			obj->id = str.substr(4);
+//			ifs >> obj->gotoMap;
+//			ifs >> obj->positionMap;
+//			ifs >> obj->positionObj;
+//			ifs >> obj->distance;
+//
+//			Map *m = getMap(MAP, id);
+//			m->next->id = obj->gotoMap;
+//		}
+	}
+	putMap(map, "001", lObj);
+	printMap(map);
+}
+
+void printAll(List<Map> *listMap) {
+	List<Map> *lm = listMap;
+	while (lm->next != NULL) {
+		printMap(lm->data);
+		lm = lm->next;
 	}
 }
 
 int main(int argc, char **argv) {
-	Map *map = new Map;
-	putMap(map, "abc", NULL);
-	putMap(map, "def", NULL);
-	putMap(map, "abc", new List<Object>);
+	readData((char *) "test.txt");
+//	printMap(map);
 }
-
