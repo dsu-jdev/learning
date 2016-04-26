@@ -13,6 +13,7 @@ struct Object {
 };
 
 struct SpecialObject {
+	string objID;
 	string id;
 	string gotoMap;
 	string positionMap;
@@ -52,8 +53,8 @@ void addList(List<T> *list, T *data) {
 
 template<class T>
 T *getList(List<T> *list, int index) {
-	List<T> *l = list;
-	for (int i = 0; i < index; i++) {
+	List<T> *l = list->next;
+	for (int i = 1; i < index; i++) {
 		l = l->next;
 	}
 
@@ -69,6 +70,7 @@ void printListObject(List<Object> *list) {
 		cout << "\t" << l->data->position << endl;
 		cout << "\t" << l->data->scale << endl;
 		cout << "\t" << l->data->swivelAngle << endl;
+		cout << endl;
 		l = l->next;
 	}
 }
@@ -88,12 +90,24 @@ void putMap(Map *map, string id, List<Object> *obj) {
 }
 
 Map *getMap(List<Map> *map, string id) {
-	List<Map> *lm = map;
-	while (lm->data->id != id) {
-		lm = lm->next;
+	List<Map> *listMap = map;
+	while (listMap->data->id != id) {
+		listMap = listMap->next;
 	}
 
-	return lm->data;
+	return listMap->data;
+}
+
+bool existsID(List<Map> *map, string id) {
+	List<Map> *listMap = map->next;
+	while (listMap->data->id != id) {
+		listMap = listMap->next;
+		if (listMap == NULL) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 void printMap(Map *map) {
@@ -106,57 +120,105 @@ void printMap(Map *map) {
 }
 
 List<Map> *MAP = new List<Map>;
-	Map *map = new Map;
 
 void readData(char *mapFile) {
 	string id;
-	List<Object> *lObj = new List<Object>;
+	Map *map;
+	List<Object> *listObj = NULL;
 
 	ifstream ifs(mapFile);
 	string str;
 
 	while (ifs >> str) {
 		if (str.find("MAP") == 0) {
+			if (listObj != NULL) {
+				putMap(map, id, listObj);
+				addList(MAP, map);
+			}
+			map = new Map;
+			listObj = new List<Object>;
 			id = str.substr(3);
 		}
 
+		string objID;
 		if (str.find("OBJ") == 0) {
 			Object *obj = new Object;
-			obj->id = str.substr(3);
+			objID = str.substr(3);
+			obj->id = objID;
 			ifs >> obj->name;
 			ifs >> obj->directory;
 			ifs >> obj->position;
 			ifs >> obj->scale;
 			ifs >> obj->swivelAngle;
 
-			addList(lObj, obj);
+			addList(listObj, obj);
 		}
 
-//		if (str.find("GOTO") == 0) {
-//			SpecialObject *obj = new SpecialObject;
-//			obj->id = str.substr(4);
-//			ifs >> obj->gotoMap;
-//			ifs >> obj->positionMap;
-//			ifs >> obj->positionObj;
-//			ifs >> obj->distance;
+		if (str.find("GOTO") == 0) {
+			SpecialObject *obj = new SpecialObject;
+			obj->objID = objID;
+			obj->id = str.substr(4);
+			ifs >> obj->gotoMap;
+			ifs >> obj->positionMap;
+			ifs >> obj->positionObj;
+			ifs >> obj->distance;
+
+//			putMap(map->next, obj->gotoMap, map->next->listObj);
+		}
+	}
+	putMap(map, id, listObj);
+	addList(MAP, map);
+}
+
+void print(List<Map> *listMap) {
+	List<Map> *list = listMap->next;
+	while (list != NULL) {
+		printMap(list->data);
+		list = list->next;
+	}
+}
+
+//int main(int argc, char **argv) {
 //
-//			Map *m = getMap(MAP, id);
-//			m->next->id = obj->gotoMap;
-//		}
-	}
-	putMap(map, "001", lObj);
-	printMap(map);
-}
-
-void printAll(List<Map> *listMap) {
-	List<Map> *lm = listMap;
-	while (lm->next != NULL) {
-		printMap(lm->data);
-		lm = lm->next;
-	}
-}
-
-int main(int argc, char **argv) {
-	readData((char *) "test.txt");
-//	printMap(map);
-}
+//	readData((char*) "data.map");
+//	print(MAP);
+//
+////	Object *obj = new Object;
+////	obj->directory = "1";
+////	obj->id = "1";
+////	obj->name = "1";
+////	obj->position = "1";
+////	obj->scale = "1";
+////	obj->swivelAngle = "1";
+////
+////	List<Object> * listObj = new List<Object>;
+////	addList(listObj, obj);
+////	Map *map = new Map;
+////	putMap(map, "0001", listObj);
+////
+////	addList(MAP, map);
+////
+////
+////	obj = new Object;
+////	obj->directory = "2";
+////	obj->id = "2";
+////	obj->name = "2";
+////	obj->position = "2";
+////	obj->scale = "2";
+////	obj->swivelAngle = "2";
+////
+////	listObj = new List<Object>;
+////	addList(listObj, obj);
+////	map = new Map;
+////	putMap(map, "0002", listObj);
+////
+////	addList(MAP, map);
+////
+////	printMap(getMap(MAP, "0001"));
+//
+////	print(MAP);
+//
+////	cout << existsID(MAP, "0001");
+//
+//
+//}
